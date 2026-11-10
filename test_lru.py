@@ -1,3 +1,4 @@
+import time
 from lru import LRUCache
 
 def test_get_returns_saved_value():
@@ -69,3 +70,24 @@ def test_many_operations():
         c.put(f"k{i}", i)
     assert c.get("k9") == 9
     assert c.get("k0") is None
+
+def test_answer_is_fresh_before_expiry():
+    c = LRUCache(2)
+    c.put("rate", "83.2", ttl=5)
+    assert c.get("rate") == "83.2"
+
+def test_answer_expires_after_ttl():
+    c = LRUCache(2)
+    c.put("rate", "83.2", ttl=1)
+    time.sleep(2)
+    assert c.get("rate") is None
+
+def test_cleaner_removes_expired_entries():
+    c = LRUCache(3)
+    c.put("rate", "83.2", ttl=1)
+    c.put("news", "x", ttl=30)
+    time.sleep(2)
+    c.put("faq", "y")
+    assert "rate" not in c.map
+    assert "news" in c.map
+    assert len(c.map) == 2
