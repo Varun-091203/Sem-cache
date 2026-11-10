@@ -91,3 +91,12 @@ def test_cleaner_removes_expired_entries():
     assert "rate" not in c.map
     assert "news" in c.map
     assert len(c.map) == 2
+
+def test_cleaner_skips_entry_already_evicted():
+    c = LRUCache(1)
+    c.put("A", 1, ttl=1)
+    c.put("B", 2)
+    time.sleep(2)
+    c.put("C", 3)
+    assert c.get("C") == 3
+    assert "A" not in c.map
