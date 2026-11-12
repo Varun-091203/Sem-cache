@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>SemCache demo</title></head>
+<body style="font-family: sans-serif; max-width: 600px; margin: 40px auto;">
+  <h2>SemCache demo</h2>
+  <input id="q" style="width: 70%;" placeholder="Type a question">
+  <button onclick="ask()">Ask</button>
+  <p id="out"></p>
+
+  <script>
+    async function ask() {
+      const q = document.getElementById("q").value;
+      const res = await fetch("/ask?question=" + encodeURIComponent(q));
+      const data = await res.json();
+            document.getElementById("out").innerText =
+        (data.from_cache ? "HIT: " : "MISS: ") +
+        data.answer + "  (" + data.seconds + " seconds)";
+    }
+  </script>
+</body>
+</html>
