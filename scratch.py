@@ -1,12 +1,7 @@
-from embedder import Embedder
-from similarity import find_most_similar
+from semantic_cache import SemanticCache
 
-e = Embedder()
-saved = {}
-for q in ["How do I cancel my order?", "Whats is the captial of france", "How do I reset my password"]:
-    saved[q] = e.embed(q)
-
-new_question = "I forgot my password, what should I do?"
-key, score = find_most_similar(e.embed(new_question), saved)
-print(key)
-print(round(score, 2))
+sc = SemanticCache(capacity=1)                   
+sc.ask("How do I reset my password?")            
+sc.ask("What is the capital of France?")         
+print(len(sc.lru.map))                           
+print(len(sc.embeddings))                        
