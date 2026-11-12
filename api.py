@@ -5,7 +5,8 @@ from fastapi.responses import FileResponse
 from semantic_cache import SemanticCache
 
 app = FastAPI()
-cache = SemanticCache(threshold=0.8)
+DEMO_THRESHOLD = 0.8                           
+cache = SemanticCache(threshold=DEMO_THRESHOLD)
 lock = threading.Lock()
 
 @app.get("/hello")

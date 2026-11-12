@@ -4,7 +4,7 @@ from similarity import find_most_similar
 from llm_client import fake_llm
 
 class SemanticCache:
-    def __init__(self, capacity=100, threshold=0.85, ttl=None, llm=fake_llm):
+    def __init__(self, capacity=100, threshold=0.96, ttl=None, llm=fake_llm):
         self.lru = LRUCache(capacity)
         self.embedder = Embedder()
         self.embeddings = {}
