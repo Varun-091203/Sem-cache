@@ -154,8 +154,8 @@
     button.textContent = "Asking...";
     try {
       const res = await fetch("/ask?question=" + encodeURIComponent(question));
-      if (!res.ok) throw new Error("The server replied with an error (" + res.status + ").");
       const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "The server replied with an error (" + res.status + ").");
       const secs = data.seconds.toFixed(2);   // always show 2 decimals, e.g. 0.00 or 1.02
       if (data.from_cache) {
         show("hit", "HIT", data.answer, "Answered from memory in " + secs + " seconds");
@@ -164,7 +164,7 @@
       }
       loadStats();
     } catch (err) {
-      show("error", "ERROR", err.message, "Is the server running?");
+          show("error", "ERROR", err.message, "If this keeps happening, check that the server is running.");
     } finally {
       button.disabled = false;
       button.textContent = "Ask";

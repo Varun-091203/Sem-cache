@@ -1,12 +1,13 @@
 import time
 import threading 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from semantic_cache import SemanticCache
+from llm_client import real_llm
 
 app = FastAPI()
 DEMO_THRESHOLD = 0.8                           
-cache = SemanticCache(threshold=DEMO_THRESHOLD)
+cache = SemanticCache(threshold=DEMO_THRESHOLD, llm=real_llm)
 lock = threading.Lock()
 
 @app.get("/hello")
@@ -17,9 +18,16 @@ def hello():
 def ask(question: str):
     start = time.time()
     with lock:
-         before = cache.hits
-         answer = cache.ask(question)
-         from_cache = cache.hits > before
+        before = cache.hits
+        try:
+            answer = cache.ask(question)
+        except Exception as error:
+            print("AI error:", error)
+            raise HTTPException(
+                status_code=503,
+                detail="The AI service is not available right now. Try again in a minute.",
+            )
+        from_cache = cache.hits > before
     seconds = round(time.time() - start, 2)
     return {"question": question, "answer": answer, "seconds": seconds, "from_cache": from_cache}
 

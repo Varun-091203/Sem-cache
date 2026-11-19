@@ -65,7 +65,7 @@ Measured on 1,000 random labelled pairs from the public Quora Question Pairs dat
 - **Chosen threshold: 0.96.** A wrong answer costs more than a missed saving. At 0.96 only about 50 hits occurred, so the wrong-hit rate is roughly 10%, not exactly 9%.
 - On this dataset no threshold gave both high savings and low errors, because many "different" questions are about the same topic with a small change.
 - **Overhead:** about 25 ms per request with 100 saved questions. With a 1-second AI call the cache breaks even at a 2.5% hit rate.
-- **The AI is simulated** (`fake_llm`, a 1-second delay), so latency savings are modelled, not measured on a real AI service.
+- **The threshold benchmark does not call an AI**; it only tests whether the cache matches questions correctly. The demo calls a real Gemini model (`gemini-3.5-flash-lite`). In one test, a miss took 5.31 s and a reworded repeat was answered from memory in 0.02 s. That is a single example, not an average. The automated tests use a simulated AI (`fake_llm`) so they run offline and free.
 - The web demo runs at a looser threshold of 0.8, only so that similar questions visibly hit. The recommended setting is 0.96.
 
 6. Complexity
@@ -83,6 +83,8 @@ Measured on 1,000 random labelled pairs from the public Quora Question Pairs dat
 - The embedding is computed twice on a miss.
 - The cache lives in memory and is emptied on restart.
 - The lock is held during the AI call, so other requests wait.
+- The demo sets no expiry time (TTL), so cached answers never expire. AI answers can also be out of date, so a real service should set a TTL.
+- The free Gemini tier has rate limits. If the AI call fails, the API returns a 503 message instead of crashing.
 
 8. Run it
 
@@ -93,6 +95,11 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 pytest
 uvicorn api:app --reload
+The demo calls the Gemini API, so it needs a free API key from https://aistudio.google.com/apikey. Save it as an environment variable, then open a new terminal:
+
+setx GEMINI_API_KEY "your-key-here"
+
+Never put the key in the code or commit it to GitHub. Without a key, the demo returns a 503 error message.
 
 Then open http://127.0.0.1:8000/ for the demo page and http://127.0.0.1:8000/stats for statistics.
 
@@ -102,6 +109,7 @@ Then open http://127.0.0.1:8000/ for the demo page and http://127.0.0.1:8000/sta
 - `similarity.py`: cosine similarity and nearest-match search
 - `embedder.py`: sentence embeddings
 - `semantic_cache.py`: the full journey of a question
+- `llm_client.py`: the AI adapters, `real_llm` (Gemini) and `fake_llm` (simulated, used by tests)
 - `api.py`, `index.html`: web service and demo page
 - `compute_scores.py`, `analyze.py`, `make_chart.py`: threshold benchmark
 - `test_*.py`: automated tests
